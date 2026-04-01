@@ -17,8 +17,10 @@ build/
 # Локальные данные приложения (не коммитить чужие настройки и скачанные модели)
 app_settings.json
 models/*.task
-models/*.pth
 models/*.onnx
+# Чужие/временные веса не коммитим; штатный файл репозитория — исключение ниже
+models/*.pth
+!models/eye_state_resnet18.pth
 
 # Обучение: содержимое датасетов не в git (папки держим через .gitkeep)
 training/data/raw/*
