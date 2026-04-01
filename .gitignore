@@ -1,0 +1,34 @@
+# Virtual environments
+.venv/
+.venv312/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.spec.bak
+
+# Локальные данные приложения (не коммитить чужие настройки и скачанные модели)
+app_settings.json
+models/*.task
+models/*.pth
+models/*.onnx
+
+# Обучение: содержимое датасетов не в git (папки держим через .gitkeep)
+training/data/raw/*
+!training/data/raw/.gitkeep
+training/data/prepared/*
+!training/data/prepared/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

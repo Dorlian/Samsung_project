@@ -1,0 +1,8 @@
+# Tkinter идёт с Python; на Linux может понадобиться пакет ОС: python3-tk
+opencv-python>=4.8
+Pillow>=10.0
+numpy>=1.24
+scikit-image>=0.22
+torch>=2.0
+torchvision>=0.15
+mediapipe>=0.10
