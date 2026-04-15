@@ -14,8 +14,8 @@ class AppSettings:
     exposure_high_thresh: int = 245
     exposure_extreme_fraction: float = 0.10
     sharpness_threshold: float = 80.0
-    # Доп. проверка закрытых глаз обученной ResNet (файл должен лежать по пути ниже)
-    use_cnn_eye_check: bool = True
+    # Доп. проверка закрытых глаз обученной ResNet (по умолчанию выкл. — стабильнее только MediaPipe)
+    use_cnn_eye_check: bool = False
     eye_classifier_weights: str = "models/eye_state_resnet18.pth"
 
 
@@ -29,7 +29,7 @@ def load_settings() -> AppSettings:
             exposure_high_thresh=int(raw.get("exposure_high_thresh", 245)),
             exposure_extreme_fraction=float(raw.get("exposure_extreme_fraction", 0.10)),
             sharpness_threshold=float(raw.get("sharpness_threshold", 80.0)),
-            use_cnn_eye_check=bool(raw.get("use_cnn_eye_check", True)),
+            use_cnn_eye_check=bool(raw.get("use_cnn_eye_check", False)),
             eye_classifier_weights=str(raw.get("eye_classifier_weights", "models/eye_state_resnet18.pth")),
         )
     except Exception:

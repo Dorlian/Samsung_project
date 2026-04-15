@@ -242,7 +242,11 @@ class PhotoAssistantApp(tk.Tk):
             side=tk.LEFT
         )
         ttk.Checkbutton(cnn_row, variable=self.cnn_eye_var).pack(side=tk.LEFT, padx=(8, 8))
-        ttk.Label(cnn_row, text="если файл весов есть", foreground=COLORS["muted"]).pack(side=tk.LEFT)
+        ttk.Label(
+            cnn_row,
+            text="по умолч. выкл.; только при необходимости + файл весов",
+            foreground=COLORS["muted"],
+        ).pack(side=tk.LEFT)
 
         act = ttk.Frame(card)
         act.pack(fill=tk.X, pady=(10, 0))

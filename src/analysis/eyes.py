@@ -1,6 +1,7 @@
 """
-Закрытые глаза: Face Landmarker blendshapes (eyeBlink_L/R); при наличии весов — доп. проверка ResNet-CNN.
-PHOTOASSISTANT_EYE_CLOSED_CHECK=0 принудительно отключает CNN; =1 включает независимо от настроек.
+Закрытые глаза: Face Landmarker blendshapes (eyeBlink_L/R) — основной режим.
+Обученная ResNet-CNN только если включено в настройках (use_cnn_eye_check) и есть файл весов.
+PHOTOASSISTANT_EYE_CLOSED_CHECK=0 — принудительно без CNN; =1 — включить CNN независимо от настроек.
 """
 from enum import Enum
 import os
