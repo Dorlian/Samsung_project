@@ -1,2 +1,4 @@
-# Bash ломается под Git Bash на Windows, если в .sh стоят окончания CRLF
+# Bash в Linux/Docker ломается на CRLF (set: pipefail: invalid option name).
 *.sh text eol=lf
+deploy/docker/*.sh text eol=lf
+bin/*.sh text eol=lf

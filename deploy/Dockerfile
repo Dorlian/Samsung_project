@@ -33,6 +33,7 @@ RUN python3 -m venv /opt/venv \
 
 COPY . .
 
-RUN chmod +x deploy/docker/entrypoint.sh
+# На Windows в контекст сборки могут попасть CRLF в .sh — в контейнере dash/bash ругаются на «pipefail».
+RUN sed -i 's/\r$//' deploy/docker/entrypoint.sh && chmod +x deploy/docker/entrypoint.sh
 
 CMD ["bash", "deploy/docker/entrypoint.sh"]
