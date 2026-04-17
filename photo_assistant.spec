@@ -3,6 +3,7 @@
 # Результат: dist/FotoAssistant/ — запускать FotoAssistant.exe из этой папки целиком.
 
 import sys
+from pathlib import Path
 from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
@@ -10,11 +11,21 @@ block_cipher = None
 # Mediapipe: подтянуть ресурсы задач
 mp_datas, mp_binaries, mp_hidden = collect_all("mediapipe")
 
+# Локальные файлы моделей (если есть) для первого запуска на другом ПК
+root = Path(".")
+extra_datas = []
+face_task = root / "models" / "face_landmarker.task"
+eye_weights = root / "models" / "eye_state_resnet18.pth"
+if face_task.exists():
+    extra_datas.append((str(face_task), "models"))
+if eye_weights.exists():
+    extra_datas.append((str(eye_weights), "models"))
+
 a = Analysis(
     ["main.py"],
     pathex=["."],
     binaries=mp_binaries,
-    datas=mp_datas,
+    datas=mp_datas + extra_datas,
     hiddenimports=mp_hidden
     + [
         "PIL._tkinter_finder",
@@ -26,7 +37,7 @@ a = Analysis(
     ],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=["photo_assistant_rth.py"],
     excludes=[],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,

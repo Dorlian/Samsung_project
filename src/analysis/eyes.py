@@ -3,11 +3,16 @@
 Обученная ResNet-CNN только если включено в настройках (use_cnn_eye_check) и есть файл весов.
 PHOTOASSISTANT_EYE_CLOSED_CHECK=0 — принудительно без CNN; =1 — включить CNN независимо от настроек.
 """
+from __future__ import annotations
+
 from enum import Enum
 import os
+import shutil
+import sys
+import threading
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 import urllib.request
 
 import cv2
@@ -15,7 +20,9 @@ import numpy as np
 from PIL import Image
 
 from src.config.settings import AppSettings
-from src.models.eye_classifier import EyeStateClassifier
+
+if TYPE_CHECKING:
+    from src.models.eye_classifier import EyeStateClassifier
 
 # Официальная модель Face Landmarker (Tasks API), ~3.5 МБ
 _FACE_LANDMARKER_URL = (
@@ -61,6 +68,45 @@ def _cnn_allowed_by_env_and_settings(settings: AppSettings) -> bool:
     return settings.use_cnn_eye_check
 
 
+def _bundled_models_dir() -> Optional[Path]:
+    """
+    В PyInstaller one-folder данные часто лежат в _internal (sys._MEIPASS).
+    """
+    base = getattr(sys, "_MEIPASS", None)
+    if not base:
+        return None
+    p = Path(base) / "models"
+    return p if p.is_dir() else None
+
+
+def _models_dir_for_runtime() -> Path:
+    """
+    Каталог для models/ и записи face_landmarker.task.
+    В PyInstaller one-folder — рядом с exe (как у запуска bat из папки проекта);
+    _internal/models только read-only — не подходит для скачивания.
+    """
+    if getattr(sys, "frozen", False):
+        p = Path(sys.executable).resolve().parent / "models"
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+    return Path("models")
+
+
+def _resolve_weights_path(raw_path: str) -> Optional[Path]:
+    """
+    Ищем веса сначала по заданному пути, затем (в frozen-режиме) в bundled models.
+    """
+    p = Path(raw_path)
+    if p.is_file():
+        return p
+    bundled = _bundled_models_dir()
+    if bundled is not None:
+        alt = bundled / p.name
+        if alt.is_file():
+            return alt
+    return None
+
+
 def _create_face_mesh_legacy():
     """Старый API (mediapipe < 0.10)."""
     try:
@@ -82,12 +128,26 @@ def _ensure_landmarker_model(models_dir: Path) -> Optional[Path]:
     if path.exists() and path.stat().st_size > 10_000:
         return path
     models_dir.mkdir(parents=True, exist_ok=True)
+    bundled = _bundled_models_dir()
+    if bundled is not None:
+        src = bundled / "face_landmarker.task"
+        if src.is_file() and src.stat().st_size > 10_000:
+            try:
+                shutil.copy2(src, path)
+            except OSError:
+                pass
+    if path.exists() and path.stat().st_size > 10_000:
+        return path
     try:
         urllib.request.urlretrieve(_FACE_LANDMARKER_URL, path)
     except Exception:
-        return None
+        pass
     if path.exists() and path.stat().st_size > 10_000:
         return path
+    if bundled is not None:
+        p = bundled / "face_landmarker.task"
+        if p.is_file() and p.stat().st_size > 10_000:
+            return p
     return None
 
 
@@ -140,17 +200,20 @@ class _FaceLandmarkerWrapper:
 
 
 def _create_mediapipe_face_detector(models_dir: Path) -> Any:
-    """Сначала legacy FaceMesh, иначе Tasks Face Landmarker + скачивание модели."""
+    """
+    Сначала Face Landmarker (blendshapes eyeBlink — нужны для «закрытых глаз» без CNN).
+    Legacy FaceMesh только если Landmarker недоступен: иначе закрытые глаза не определяются.
+    """
+    model_path = _ensure_landmarker_model(models_dir)
+    if model_path is not None:
+        try:
+            return _FaceLandmarkerWrapper(model_path)
+        except Exception:
+            pass
     legacy = _create_face_mesh_legacy()
     if legacy is not None:
         return legacy
-    model_path = _ensure_landmarker_model(models_dir)
-    if model_path is None:
-        return None
-    try:
-        return _FaceLandmarkerWrapper(model_path)
-    except Exception:
-        return None
+    return None
 
 
 def _largest_face_index(multi_face_landmarks: List[Any]) -> int:
@@ -271,11 +334,13 @@ class EyeStateAnalyzer:
     """mediapipe_active — работает ли детекция лица через Mediapipe (legacy или Face Landmarker)."""
 
     def __init__(self) -> None:
-        models_dir = Path("models")
+        models_dir = _models_dir_for_runtime()
         self.face_mesh = _create_mediapipe_face_detector(models_dir)
         self.mediapipe_active = self.face_mesh is not None
         self._face_landmarker = isinstance(self.face_mesh, _FaceLandmarkerWrapper)
         self.uses_blendshape_eye_closure = self._face_landmarker
+        # FaceLandmarker / OpenCV — один экземпляр; параллельный analyze() из ThreadPool недопустим.
+        self._lock = threading.Lock()
 
         self._cached_classifier: Optional[EyeStateClassifier] = None
         self._cached_weights_path: Optional[str] = None
@@ -283,13 +348,15 @@ class EyeStateAnalyzer:
     def _ensure_classifier(self, settings: AppSettings) -> Optional[EyeStateClassifier]:
         if not _cnn_allowed_by_env_and_settings(settings):
             return None
-        path = Path(settings.eye_classifier_weights)
-        if not path.is_file():
+        path = _resolve_weights_path(settings.eye_classifier_weights)
+        if path is None:
             return None
         key = str(path.resolve())
         if self._cached_classifier is not None and self._cached_weights_path == key:
             return self._cached_classifier
-        self._cached_classifier = EyeStateClassifier(weights_path=path)
+        from src.models.eye_classifier import EyeStateClassifier as _EyeStateClassifier
+
+        self._cached_classifier = _EyeStateClassifier(weights_path=path)
         self._cached_weights_path = key
         return self._cached_classifier
 
@@ -347,6 +414,10 @@ class EyeStateAnalyzer:
         return False
 
     def are_eyes_ok(self, image_path: Path, settings: AppSettings | None = None) -> Tuple[bool, EyesReason]:
+        with self._lock:
+            return self._are_eyes_ok_unlocked(image_path, settings)
+
+    def _are_eyes_ok_unlocked(self, image_path: Path, settings: AppSettings | None) -> Tuple[bool, EyesReason]:
         s = settings or AppSettings()
         clf = self._ensure_classifier(s)
 

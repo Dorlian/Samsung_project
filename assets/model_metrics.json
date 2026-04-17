@@ -1,0 +1,18 @@
+{
+  "eye_state_resnet18": {
+    "model": "resnet18",
+    "epoch": "3",
+    "train_loss": "0.075649",
+    "train_acc": "0.978000",
+    "val_loss": "0.114280",
+    "val_acc": "0.952000"
+  },
+  "eye_state_mobilenetv3": {
+    "model": "mobilenetv3",
+    "epoch": "3",
+    "train_loss": "0.095941",
+    "train_acc": "0.964000",
+    "val_loss": "0.597421",
+    "val_acc": "0.728000"
+  }
+}

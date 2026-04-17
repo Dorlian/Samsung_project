@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import sys
 import threading
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from src.analysis.pipeline import PhotoAnalyzer, AnalysisResult
 from src.config.settings import AppSettings, load_settings, save_settings
 from src.ui.gallery import AlbumGallery
 from src.utils.file_ops import iter_images_for_sorting, prepare_output_dirs, move_with_reason
+
+if TYPE_CHECKING:
+    from src.analysis.pipeline import AnalysisResult, PhotoAnalyzer
 
 # Светлая минималистичная тема (mac-like)
 COLORS = {
@@ -69,19 +73,62 @@ class PhotoAssistantApp(tk.Tk):
         self.title("Фотоассистент фотографа")
         self.geometry("1100x720")
         self.minsize(900, 600)
+        self.after(30, self._apply_maximized_if_possible)
+
+        self.source_dir: Optional[Path] = None
+        self._stop_event = threading.Event()
+        self._analysis_running = False
+        self.analyzer: PhotoAnalyzer | None = None
+        self._analysis_load_error: str | None = None
+        self.settings = load_settings()
+
+        self._build_ui()
+        self._startup_log()
+        self.after(50, self._load_analysis_stack)
+        self.after_idle(self._focus_main_window)
+
+    def _focus_main_window(self) -> None:
+        try:
+            self.lift()
+            self.focus_force()
+        except tk.TclError:
+            pass
+
+    def _apply_maximized_if_possible(self) -> None:
         try:
             self.state("zoomed")
         except tk.TclError:
             pass
 
-        self.source_dir: Optional[Path] = None
-        self._stop_event = threading.Event()
-        self._analysis_running = False
-        self.analyzer = PhotoAnalyzer()
-        self.settings = load_settings()
+    def _load_analysis_stack(self) -> None:
+        """Импорт cv2/pipeline в фоне — иначе exe блокирует главный поток до mainloop и UI «мёртвый»."""
 
-        self._build_ui()
-        self._startup_log()
+        def load() -> None:
+            try:
+                from src.analysis.pipeline import PhotoAnalyzer as _PhotoAnalyzer
+
+                analyzer = _PhotoAnalyzer()
+            except Exception as e:  # noqa: BLE001
+                self.after(0, lambda err=e: self._on_analysis_load_failed(err))
+                return
+            self.after(0, lambda a=analyzer: self._on_analysis_load_ready(a))
+
+        threading.Thread(target=load, daemon=True).start()
+
+    def _on_analysis_load_failed(self, err: BaseException) -> None:
+        self._analysis_load_error = str(err)
+        self.log(f"Не удалось загрузить модуль анализа: {err}")
+
+    def _on_analysis_load_ready(self, analyzer: PhotoAnalyzer) -> None:
+        self.analyzer = analyzer
+        self.log("Движок анализа готов")
+        self._sync_start_button_state()
+
+    def _sync_start_button_state(self) -> None:
+        if self._analysis_running:
+            return
+        can_start = self.source_dir is not None and self.analyzer is not None
+        self.start_btn.configure(state=tk.NORMAL if can_start else tk.DISABLED)
 
     def _workspace(self) -> Optional[Path]:
         return self.source_dir
@@ -238,13 +285,13 @@ class PhotoAssistantApp(tk.Tk):
 
         cnn_row = ttk.Frame(card)
         cnn_row.pack(fill=tk.X, pady=6)
-        ttk.Label(cnn_row, text="Доп. проверка глаз (ResNet, models/eye_state_resnet18.pth)", width=38).pack(
+        ttk.Label(cnn_row, text="Доп. проверка глаз (mediapipe, models/eye_state_resnet18.pth)", width=38).pack(
             side=tk.LEFT
         )
         ttk.Checkbutton(cnn_row, variable=self.cnn_eye_var).pack(side=tk.LEFT, padx=(8, 8))
         ttk.Label(
             cnn_row,
-            text="по умолч. выкл.; только при необходимости + файл весов",
+            text="по умолч. выкл.; только при необходимости",
             foreground=COLORS["muted"],
         ).pack(side=tk.LEFT)
 
@@ -325,7 +372,7 @@ class PhotoAssistantApp(tk.Tk):
             return
         self.source_dir = Path(folder)
         self.folder_label.configure(text=str(self.source_dir))
-        self.start_btn.configure(state=tk.NORMAL)
+        self._sync_start_button_state()
         self.log("Папка выбрана")
         self.gallery.refresh_albums()
 
@@ -339,6 +386,12 @@ class PhotoAssistantApp(tk.Tk):
             messagebox.showwarning("Папка", "Сначала выберите папку.")
             return
         if self._analysis_running:
+            return
+        if self.analyzer is None:
+            if self._analysis_load_error:
+                messagebox.showerror("Анализ", f"Модуль анализа не загружен:\n{self._analysis_load_error}")
+            else:
+                messagebox.showinfo("Анализ", "Подождите несколько секунд — загружается движок анализа.")
             return
 
         self._stop_event.clear()
@@ -359,6 +412,8 @@ class PhotoAssistantApp(tk.Tk):
         batch_size = 4
 
         def worker() -> None:
+            from src.analysis.pipeline import AnalysisResult
+
             processed = good_count = bad_count = 0
             idx = 0
 
@@ -367,7 +422,6 @@ class PhotoAssistantApp(tk.Tk):
                 if total > 0:
                     self.progress_var.set(min(100.0, pv / total * 100.0))
                 self.stats_var.set(f"{pv} обработано  •  {gv} удачных  •  {bv} неудачных")
-                self.update_idletasks()
 
             try:
                 while idx < len(image_files) and not self._stop_event.is_set():
@@ -410,7 +464,7 @@ class PhotoAssistantApp(tk.Tk):
 
     def _finish_analysis_ui(self) -> None:
         self._analysis_running = False
-        self.start_btn.configure(state=tk.NORMAL)
+        self._sync_start_button_state()
         self.stop_btn.configure(state=tk.DISABLED)
 
     def open_good_folder(self) -> None:

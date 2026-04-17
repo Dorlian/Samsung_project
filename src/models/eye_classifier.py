@@ -28,6 +28,25 @@ class EyeStateModel(nn.Module):
         return self.backbone(x)
 
 
+class EyeStateMobileNetModel(nn.Module):
+    """
+    Более лёгкая альтернатива на базе MobileNetV3-Small.
+    """
+
+    def __init__(self, pretrained: bool = False) -> None:
+        super().__init__()
+        if pretrained:
+            backbone = models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1)
+        else:
+            backbone = models.mobilenet_v3_small(weights=None)
+        in_features = backbone.classifier[-1].in_features
+        backbone.classifier[-1] = nn.Linear(in_features, 2)
+        self.backbone = backbone
+
+    def forward(self, x):  # type: ignore[override]
+        return self.backbone(x)
+
+
 class EyeStateClassifier:
     def __init__(self, weights_path: Path | None = None, device: str | None = None) -> None:
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))

@@ -1,6 +1,7 @@
 # Virtual environments
 .venv/
 .venv312/
+.pip_cache/
 venv/
 env/
 
