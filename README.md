@@ -152,7 +152,8 @@ git push
 1. Установите зависимости в виртуальное окружение (см. выше).
 2. Установите PyInstaller: `pip install pyinstaller`
 3. Запустите **`build_exe.bat`** из **корня** репозитория или вручную:  
-   `pyinstaller packaging/photo_assistant.spec`
+   `pyinstaller packaging/photo_assistant.spec`  
+   Перед сборкой bat сам скачает **`models/face_landmarker.task`**, если файла ещё нет (он в `.gitignore`, но **обязателен** внутри EXE для определения закрытых глаз через MediaPipe). Без него приложение остаётся на старом Face Mesh без blendshapes и **не видит закрытые веки**, пока вы не включите доп. ResNet в настройках и не положите веса.
 
 Готовая сборка обычно лежит в **`dist/FotoAssistant/`**. Переносите **всю** эту папку, не один файл `.exe`.
 
