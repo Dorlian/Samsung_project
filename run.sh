@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Если вызвали как «sh run.sh», dash не поддерживает pipefail — перезапускаем через bash.
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec /usr/bin/env bash "$0" "$@"
+fi
 set -euo pipefail
 cd "$(dirname "$0")"
 
