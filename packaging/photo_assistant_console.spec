@@ -7,8 +7,8 @@ from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
-_SPEC = Path(SPECPATH).resolve()
-SPEC_DIR = _SPEC.parent
+# SPECPATH — каталог, где лежит .spec (у нас packaging/), не весь путь к файлу.
+SPEC_DIR = Path(SPECPATH).resolve()
 ROOT = SPEC_DIR.parent
 
 mp_datas, mp_binaries, mp_hidden = collect_all("mediapipe")
