@@ -90,7 +90,7 @@ python -m app
 ### Docker на ноутбуке с Windows
 
 1. Установите **Docker Desktop** (и при необходимости **WSL2** по подсказкам установщика).
-2. Из корня репозитория: `docker compose -f deploy/docker-compose.yml build`, затем `docker compose -f deploy/docker-compose.yml run --rm photo-assistant`.  
+2. Из корня репозитория: **`Фотоассистент_Docker.bat`** — соберёт образ и запустит контейнер (на любом ПК с Docker Desktop достаточно скопировать папку проекта и дважды щёлкнуть bat). Вручную то же самое: `docker compose -f deploy/docker-compose.yml build`, затем `docker compose -f deploy/docker-compose.yml run --rm photo-assistant`.  
    По умолчанию используется **виртуальный дисплей**; полноценная демонстрация окон так же, как у нативного приложения, на Windows из Docker обычно **не гарантируется** — держите под рукой **запуск через Python** (п. 2–4).
 
 ---
@@ -168,7 +168,7 @@ git push
 
 В образе ставится **PyTorch CPU** (через `requirements/requirements-docker.txt` + официальный CPU-индекс), без пакетов NVIDIA.
 
-Команды выполняйте из **корня** репозитория, указав файлы в **`deploy/`**:
+Команды выполняйте из **корня** репозитория, указав файлы в **`deploy/`**. На Windows проще **`Фотоассистент_Docker.bat`** (полная пересборка: тот же файл с аргументом **`--no-cache`**).
 
 ```bash
 docker compose -f deploy/docker-compose.yml build
