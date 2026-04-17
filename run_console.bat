@@ -11,16 +11,16 @@ if not exist "%PY%" (
   pause
   exit /b 1
 )
-if not exist "%~dp0main.py" (
-  echo Не найден main.py. Запускайте bat из корня папки проекта.
+if not exist "%~dp0app\__main__.py" (
+  echo Не найден app\__main__.py. Запускайте bat из корня папки проекта.
   pause
   exit /b 1
 )
 
-echo Запуск: "%PY%" main.py
+echo Запуск: "%PY%" -m app
 echo Окно консоли не закрывайте до выхода из программы.
 echo.
-"%PY%" main.py
+"%PY%" -m app
 echo.
 echo Код выхода: %ERRORLEVEL%
 pause

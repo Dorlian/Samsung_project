@@ -50,7 +50,7 @@ if errorlevel 1 (
 )
 
 echo [3/3] Устанавливаю зависимости ^(долго, 3-15+ мин. при медленном интернете^)...
-"%VENV_PY%" -m pip install -r "%~dp0requirements.txt"
+"%VENV_PY%" -m pip install -r "%~dp0requirements\requirements.txt"
 if errorlevel 1 (
   echo.
   echo Установка не удалась: проверьте интернет и версию Python ^(нужен 3.10+^).
@@ -64,14 +64,14 @@ echo Готово. Дальше этот файл будет открывать 
 echo.
 
 :RUN_APP
-if not exist "%~dp0main.py" (
-  echo Не найден main.py. Нужна полная папка проекта.
+if not exist "%~dp0app\__main__.py" (
+  echo Не найден app\__main__.py. Нужна полная папка проекта.
   pause
   exit /b 1
 )
 
 REM Отдельный процесс — окно консоли можно закрыть, останется только окно программы
-start "" "%VENV_PY%" "%~dp0main.py"
+start "" /D "%~dp0" "%VENV_PY%" -m app
 exit /b 0
 
 REM ---------------------------------------------------------------------------

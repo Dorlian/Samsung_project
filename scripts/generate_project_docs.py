@@ -428,8 +428,8 @@ def build_zapiska() -> None:
     add_left(
         "Исходный код и документация размещены в открытом репозитории GitHub: https://github.com/Dorlian/Samsung_project"
         "\n\n"
-        "Корень проекта: main.py (запуск приложения), requirements.txt, run.bat и run.sh, build_exe.bat и "
-        "photo_assistant.spec для сборки исполняемого файла под Windows, каталог models/ для модели MediaPipe "
+        "Корень проекта: README.md и .bat; app/__main__.py (python -m app), requirements/requirements.txt, "
+        "bin/run.sh, build_exe.bat и packaging/photo_assistant.spec (PyInstaller), каталог models/ для MediaPipe "
         "и опционального файла весов eye_state_resnet18.pth, каталог training/ с инструкциями по данным для обучения."
         "\n\n"
         "Пакет src/analysis содержит модули экспозиции, резкости, анализа глаз и сборку пайплайна PhotoAnalyzer; "
@@ -441,7 +441,7 @@ def build_zapiska() -> None:
     add_heading("3", "Инструкция по установке и запуску")
     add_left(
         "Требуется Python 3.10–3.12. Рекомендуется создание виртуального окружения и установка зависимостей командой "
-        "pip install -r requirements.txt. Запуск: python main.py или сценарии run.bat / run.sh (см. README.md в репозитории)."
+        "pip install -r requirements/requirements.txt. Запуск: python -m app или run.bat / bin/run.sh (см. README.md)."
         "\n\n"
         "При первом анализе изображений с лицами в каталог models/ загружается файл face_landmarker.task (необходим "
         "доступ в Интернет один раз). Опциональная нейросеть для глаз по умолчанию отключена в настройках; при "

@@ -4,6 +4,8 @@
 
 Десктоп-приложение на Python: автоматическая сортировка фотографий в папки **Удачные** и **Неудачные** по критериям:
 
+В **корне репозитория** лежат только **`README.md`** и **`.bat`** для Windows; остальное — в подпапках (`app/`, `src/`, `requirements/`, `deploy/`, `packaging/`, `bin/` и т.д.).
+
 - экспозиция (пересвет / недосвет),
 - резкость (смаз),
 - закрытые глаза (MediaPipe Face Landmarker; опционально — доп. проверка нейросетью, если есть файл весов).
@@ -24,13 +26,13 @@
 ```bat
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe main.py
+.\.venv\Scripts\python.exe -m pip install -r requirements\requirements.txt
+.\.venv\Scripts\python.exe -m app
 ```
 
 Либо дважды запустите **`run.bat`** из корня проекта — скрипт подставит Python из `.venv` / `.venv312` и при необходимости установит пакеты.
 
-**PowerShell (Windows):** в каталоге проекта выполните **`.\run.ps1`** (при ошибке политики: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`). В **`run.ps1`** строки для PowerShell в **прямых одинарных кавычках** — не подменяйте их «типографскими» кавычками из Word, иначе будет ошибка *«отсутствует завершающий символ»*. Нативные команды **`sh`**, **`chmod`** в Windows обычно **нет** — для Unix-скрипта используйте **WSL** или **Git Bash**; **`run.sh`** в репозитории с **LF** (см. `.gitattributes`).
+**PowerShell (Windows):** из корня репозитория: **`.\bin\run.ps1`** (при ошибке политики: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`). В скрипте используйте только **прямые кавычки** с клавиатуры, не «типографские» из Word. Команды **`sh`** / **`chmod`** в обычном PowerShell нет — для **`bin/run.sh`** используйте **WSL** или **Git Bash** (файл с переводами строк **LF**, см. `.gitattributes`).
 
 Если проект будут запускать **на другом ПК или на защите**, заранее прочитайте раздел **«Защита проекта»** ниже (несколько запасных способов, в том числе Docker).
 
@@ -40,11 +42,11 @@ python -m venv .venv
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python main.py
+python -m pip install -r requirements/requirements.txt
+python -m app
 ```
 
-Либо из корня проекта: **`chmod +x run.sh`** один раз, затем **`./run.sh`**.
+Либо из корня проекта: **`chmod +x bin/run.sh`** один раз, затем **`./bin/run.sh`**.
 
 **Linux:** если при запуске ошибка про отсутствие `tkinter`, установите пакет Tcl/Tk для вашей системы, например:
 
@@ -65,8 +67,8 @@ python main.py
 4. **Вручную из CMD** (если bat «молчит»):  
    `cd /d C:\PhotoAssistant`  
    `py -3.12 -m venv .venv`  
-   `.venv\Scripts\python.exe -m pip install -r requirements.txt`  
-   `.venv\Scripts\python.exe main.py`
+   `.venv\Scripts\python.exe -m pip install -r requirements\requirements.txt`  
+   `.venv\Scripts\python.exe -m app`
 5. **Сборка EXE** — папка **`dist/FotoAssistant/`** целиком (не один файл). На комиссионном ПК должны быть установлены **[Visual C++ Redistributable](https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist)** (x64), и иногда нужно **разрешить приложение в антивирусе** или **собрать EXE с консолью** (см. ниже).
 6. **Docker** — если на ноутбуке стоят Docker Desktop и WSL2: см. раздел **«Docker»** ниже в этом README. На Windows **окно Tk из контейнера обычно неудобно**; Docker уместен как запасной способ **поднять окружение** и прогнать код/скрипты, а для демонстрации GUI надёжнее **п. 2–4** или **EXE**.
 
@@ -88,7 +90,7 @@ python main.py
 ### Docker на ноутбуке с Windows
 
 1. Установите **Docker Desktop** (и при необходимости **WSL2** по подсказкам установщика).
-2. В каталоге проекта: `docker compose build`, затем `docker compose run --rm photo-assistant`.  
+2. Из корня репозитория: `docker compose -f deploy/docker-compose.yml build`, затем `docker compose -f deploy/docker-compose.yml run --rm photo-assistant`.  
    По умолчанию используется **виртуальный дисплей**; полноценная демонстрация окон так же, как у нативного приложения, на Windows из Docker обычно **не гарантируется** — держите под рукой **запуск через Python** (п. 2–4).
 
 ---
@@ -149,12 +151,12 @@ git push
 
 1. Установите зависимости в виртуальное окружение (см. выше).
 2. Установите PyInstaller: `pip install pyinstaller`
-3. Запустите **`build_exe.bat`** или вручную:  
-   `pyinstaller photo_assistant.spec`
+3. Запустите **`build_exe.bat`** из **корня** репозитория или вручную:  
+   `pyinstaller packaging/photo_assistant.spec`
 
 Готовая сборка обычно лежит в **`dist/FotoAssistant/`**. Переносите **всю** эту папку, не один файл `.exe`.
 
-**Для защиты / чужого ПК:** дополнительно можно собрать **`build_exe_console.bat`** — вариант с **консолью** и без UPX (`photo_assistant_console.spec`), папка **`dist/FotoAssistantConsole/`**: при ошибке на экране останется текст трассировки. В основной `photo_assistant.spec` UPX отключён, чтобы реже ругался антивирус.
+**Для защиты / чужого ПК:** дополнительно **`build_exe_console.bat`** — консоль и без UPX (`packaging/photo_assistant_console.spec`), папка **`dist/FotoAssistantConsole/`**. В **`packaging/photo_assistant.spec`** UPX отключён.
 
 ---
 
@@ -164,29 +166,29 @@ git push
 
 **Сборка образа**
 
-В образе ставится **PyTorch CPU** (через `requirements-docker.txt` + официальный CPU-индекс), без пакетов NVIDIA — образ заметно меньше, чем при `pip install torch` с PyPI на Linux.
+В образе ставится **PyTorch CPU** (через `requirements/requirements-docker.txt` + официальный CPU-индекс), без пакетов NVIDIA.
+
+Команды выполняйте из **корня** репозитория, указав файлы в **`deploy/`**:
 
 ```bash
-docker compose build
+docker compose -f deploy/docker-compose.yml build
 ```
 
 **Запуск приложения**
 
-По умолчанию в `docker-compose.yml` включён **виртуальный дисплей** (`xvfb`), чтобы контейнер стартовал без настройки X11 (удобно для проверки, что зависимости поднимаются). Окно Tk при этом может вести себя не так, как на «живом» мониторе.
+По умолчанию включён **виртуальный дисплей** (`xvfb`).
 
 ```bash
-docker compose run --rm photo-assistant
+docker compose -f deploy/docker-compose.yml run --rm photo-assistant
 ```
 
-Каталог проекта монтируется в `/app`, поэтому код и файлы настроек с хоста совпадают с контейнером.
+Корень репозитория монтируется в **`/app`** в контейнере.
 
 **GUI на экране хоста (Linux + X11)**
 
-На машине с X11 разрешите доступ для контейнера и передайте сокет:
-
 ```bash
 xhost +local:docker
-PHOTOASSISTANT_HEADLESS=0 DISPLAY=$DISPLAY docker compose -f docker-compose.yml -f docker-compose.linux-gui.yml run --rm photo-assistant
+PHOTOASSISTANT_HEADLESS=0 DISPLAY=$DISPLAY docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.linux-gui.yml run --rm photo-assistant
 ```
 
 На **Windows/macOS** вывод нативного окна из Docker обычно неудобен; для повседневной работы проще запускать приложение **напрямую через Python** или **`.exe`** (см. выше).
@@ -194,7 +196,7 @@ PHOTOASSISTANT_HEADLESS=0 DISPLAY=$DISPLAY docker compose -f docker-compose.yml 
 **Разовые команды без GUI** (обучение, скрипты):
 
 ```bash
-docker compose run --rm photo-assistant python -m src.training.train_eye_classifier --help
+docker compose -f deploy/docker-compose.yml run --rm photo-assistant python -m src.training.train_eye_classifier --help
 ```
 
 ---
@@ -203,11 +205,11 @@ docker compose run --rm photo-assistant python -m src.training.train_eye_classif
 
 | Симптом | Что сделать |
 |--------|-------------|
-| `ModuleNotFoundError` | Установите зависимости тем же интерпретатором, которым запускаете: `python -m pip install -r requirements.txt` |
+| `ModuleNotFoundError` | Установите зависимости тем же интерпретатором: `python -m pip install -r requirements/requirements.txt` |
 | Нет модуля `mediapipe` | Убедитесь в Python 3.10–3.12; при необходимости обновите pip |
 | Не грузится модель лица | Проверьте интернет; убедитесь, что папка `models/` доступна для записи |
 | Linux: нет `tkinter` | Установите `python3-tk` (см. выше) |
-| Тяжёлый / долгий `torch` | На CPU обычно достаточно стандартной установки из `requirements.txt`; при необходимости см. [официальную инструкцию PyTorch](https://pytorch.org/get-started/locally/) для своей ОС |
+| Тяжёлый / долгий `torch` | На CPU обычно достаточно `requirements/requirements.txt`; при необходимости см. [официальную инструкцию PyTorch](https://pytorch.org/get-started/locally/) |
 | EXE сразу закрывается / «ничего не происходит» | Перенесите **всю** папку `dist/FotoAssistant/`; установите [VC++ Redistributable x64](https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist); проверьте антивирус; соберите **`FotoAssistantConsole`** и смотрите текст в консоли |
 | BAT не находит Python | Установите Python **3.10–3.12**, галочка **Add to PATH**; или `py -3.12` из [py launcher](https://docs.python.org/3/using/windows.html#python-launcher-for-windows) |
 | Сбои в папке с кириллицей в пути | Скопируйте проект в `C:\PhotoAssistant\` и запустите оттуда |
@@ -225,21 +227,21 @@ docker compose run --rm photo-assistant python -m src.training.train_eye_classif
 
 | Путь | Назначение |
 |------|------------|
-| `main.py` | Точка входа, UI, запуск анализа |
+| `*.bat`, `README.md` | Корень: только запуск под Windows и документация |
+| `app/__main__.py` | Точка входа GUI; запуск: `python -m app` из корня репозитория |
 | `src/analysis/` | Экспозиция, резкость, глаза, общий пайплайн |
 | `src/ui/gallery.py` | Альбомы и ручной перенос |
 | `src/config/settings.py` | Настройки и `app_settings.json` |
 | `src/models/eye_classifier.py` | Классификатор глаз (ResNet) |
 | `src/training/` | Подготовка MRL и обучение `eye_state_resnet18.pth` |
 | `training/README.md` | Как скачать данные и обучить модель |
-| `requirements.txt` | Зависимости Python |
-| `run.bat` / `run.sh` / `run.ps1` | Запуск: CMD / Unix+WSL / PowerShell |
-| `Фотоассистент.bat` | Windows: создание `.venv`, установка пакетов, запуск GUI |
-| `run_console.bat` | Windows: запуск через `.venv` **с консолью** (видны ошибки) |
-| `photo_assistant.spec` | Сборка PyInstaller (окно без консоли) |
-| `photo_assistant_console.spec`, `build_exe_console.bat` | Сборка EXE **с консолью** для диагностики |
-| `Dockerfile`, `docker-compose.yml` | Сборка и запуск в Docker |
-| `requirements-docker.txt` | Зависимости для Docker (без torch; CPU-колёса в `Dockerfile`) |
-| `scripts/generate_project_docs.py` | Генерация пояснительной записки и презентации (нужен шаблон `.pptx` в `Downloads`, см. комментарий в скрипте) |
+| `requirements/requirements.txt` | Зависимости Python |
+| `requirements/requirements-docker.txt` | Зависимости для Docker (без torch) |
+| `bin/run.sh`, `bin/run.ps1` | Запуск из Unix / PowerShell (рабочий каталог — корень репо) |
+| `Фотоассистент.bat`, `run.bat` | Windows: `.venv`, `pip`, `python -m app` |
+| `run_console.bat` | Запуск `python -m app` **с консолью** |
+| `packaging/photo_assistant*.spec`, `photo_assistant_rth.py` | PyInstaller |
+| `deploy/Dockerfile`, `deploy/docker-compose*.yml` | Docker |
+| `scripts/generate_project_docs.py` | Генерация пояснительной записки и презентации |
 
 Папка **`models/`** создаётся при работе приложения; в репозитории её можно не коммитить (см. `.gitignore`).

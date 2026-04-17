@@ -1,31 +1,35 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Сборка: build_exe_console.bat — EXE с чёрной консолью (текст ошибок при защите / на чужом ПК).
-# UPX отключён — меньше ложных срабатываний антивируса.
+# Сборка из корня репозитория: build_exe.bat  или  pyinstaller packaging/photo_assistant.spec
+# Результат: dist/FotoAssistant/
 
-import sys
 from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
+_SPEC = Path(SPECPATH).resolve()
+SPEC_DIR = _SPEC.parent
+ROOT = SPEC_DIR.parent
+
 mp_datas, mp_binaries, mp_hidden = collect_all("mediapipe")
 
-root = Path(".")
 extra_datas = []
-face_task = root / "models" / "face_landmarker.task"
-eye_weights = root / "models" / "eye_state_resnet18.pth"
+face_task = ROOT / "models" / "face_landmarker.task"
+eye_weights = ROOT / "models" / "eye_state_resnet18.pth"
 if face_task.exists():
     extra_datas.append((str(face_task), "models"))
 if eye_weights.exists():
     extra_datas.append((str(eye_weights), "models"))
 
 a = Analysis(
-    ["main.py"],
-    pathex=["."],
+    [str(ROOT / "app" / "__main__.py")],
+    pathex=[str(ROOT)],
     binaries=mp_binaries,
     datas=mp_datas + extra_datas,
     hiddenimports=mp_hidden
     + [
+        "app",
         "PIL._tkinter_finder",
         "torch",
         "torchvision",
@@ -35,7 +39,7 @@ a = Analysis(
     ],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=["photo_assistant_rth.py"],
+    runtime_hooks=[str(SPEC_DIR / "photo_assistant_rth.py")],
     excludes=[],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
@@ -50,12 +54,12 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="FotoAssistantConsole",
+    name="FotoAssistant",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -71,5 +75,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name="FotoAssistantConsole",
+    name="FotoAssistant",
 )

@@ -1,4 +1,4 @@
-# PyInstaller runtime hook: выполняется до main.py.
+# PyInstaller runtime hook: выполняется до запуска app/__main__.py.
 # Рабочая папка = каталог exe (как при запуске через .bat из корня проекта):
 # app_settings.json, models/, относительные пути ведут себя предсказуемо.
 import os

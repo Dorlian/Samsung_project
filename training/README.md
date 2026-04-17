@@ -35,7 +35,7 @@ python -m src.training.train_eye_classifier --data-root training/data/prepared -
 
 ## 4. Зависимости
 
-Те же, что для основного приложения: `torch`, `torchvision` (см. корневой `requirements.txt`).
+Те же, что для основного приложения: `torch`, `torchvision` (см. `requirements/requirements.txt`).
 
 ## Связь с приложением
 

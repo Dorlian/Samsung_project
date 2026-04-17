@@ -1,11 +1,11 @@
-# Запуск из PowerShell (Windows). Аналог run.sh / run.bat.
-# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-# .\run.ps1
+# Запуск из bin/ — корень репозитория на уровень выше.
+# .\bin\run.ps1  или  Set-Location ...; .\run.ps1 из bin
 
 $ErrorActionPreference = 'Stop'
-Set-Location $PSScriptRoot
+$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+Set-Location $Root
 
-$venvPy = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+$venvPy = Join-Path $Root '.venv\Scripts\python.exe'
 $py = $null
 
 if (Test-Path -LiteralPath $venvPy) {
@@ -35,10 +35,10 @@ if (-not $py) {
 Write-Host 'Proverka moduley (cv2, PIL, torch, mediapipe)...'
 & $py -c 'import cv2; from PIL import Image; import torch; import mediapipe' 2>$null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host 'Ustanavlivayu requirements.txt (dolgo pri pervom zapuske)...'
+    Write-Host 'Ustanavlivayu requirements (dolgo pri pervom zapuske)...'
     & $py -m pip install --upgrade pip
-    $req = Join-Path $PSScriptRoot 'requirements.txt'
+    $req = Join-Path $Root 'requirements\requirements.txt'
     & $py -m pip install -r $req
 }
 
-& $py (Join-Path $PSScriptRoot 'main.py')
+& $py -m app

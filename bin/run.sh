@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Если вызвали как «sh run.sh», dash не поддерживает pipefail — перезапускаем через bash.
+# Запуск из bin/: корень репозитория — родитель этой папки.
 if [ -z "${BASH_VERSION:-}" ]; then
   exec /usr/bin/env bash "$0" "$@"
 fi
 set -euo pipefail
-cd "$(dirname "$0")"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
 
 PY=""
 if [[ -x ".venv/bin/python" ]]; then
@@ -17,9 +18,9 @@ fi
 
 echo "Проверка зависимостей..."
 if ! "$PY" -c "import cv2; from PIL import Image; import torch; import mediapipe" 2>/dev/null; then
-  echo "Устанавливаю пакеты из requirements.txt (первый раз может занять время)..."
+  echo "Устанавливаю пакеты из requirements/requirements.txt (первый раз может занять время)..."
   "$PY" -m pip install --upgrade pip
-  "$PY" -m pip install -r requirements.txt
+  "$PY" -m pip install -r requirements/requirements.txt
 fi
 
-exec "$PY" main.py
+exec "$PY" -m app
