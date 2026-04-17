@@ -22,6 +22,13 @@ def is_exposure_ok(image_path: Path, low_thresh: int = 10, high_thresh: int = 24
     :param high_thresh: граница пересвета (0..255)
     :param extreme_fraction: допустимая доля "выбитых" пикселей (0..1)
     """
+    # Согласовано с UI / sanitize_settings: иначе слишком низкий high_thresh даёт «всё в пересвет».
+    low_thresh = max(0, min(80, int(low_thresh)))
+    high_thresh = max(180, min(255, int(high_thresh)))
+    if high_thresh <= low_thresh:
+        low_thresh, high_thresh = 10, 245
+    extreme_fraction = max(0.01, min(0.35, float(extreme_fraction)))
+
     img = cv2.imread(str(image_path))
     if img is None:
         return False, ExposureReason.UNDEREXPOSED

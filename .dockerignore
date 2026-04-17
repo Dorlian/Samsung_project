@@ -1,0 +1,26 @@
+.git
+.gitignore
+.venv
+.venv312
+venv
+env
+__pycache__
+*.py[cod]
+*.egg-info
+.eggs
+dist
+build
+*.rar
+dist.rar
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+pip_cache
+.pip_cache
+
+# Ускорение docker build: при монтировании ./:/app файлы с хоста доступны в контейнере
+models/*.pth
+models/*.task
+models/*.onnx

@@ -1,0 +1,6 @@
+# Зависимости для образа Docker (torch/torchvision ставятся отдельно — CPU-колёса, см. Dockerfile).
+opencv-python>=4.8
+Pillow>=10.0
+numpy>=1.24
+scikit-image>=0.22
+mediapipe>=0.10

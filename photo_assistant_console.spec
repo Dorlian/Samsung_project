@@ -1,7 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Сборка: build_exe.bat  или  pyinstaller photo_assistant.spec
-# Результат: dist/FotoAssistant/ — запускать FotoAssistant.exe из этой папки целиком.
-# UPX отключён: меньше ложных срабатываний антивируса и реже «тихие» падения на чужих ПК.
+# Сборка: build_exe_console.bat — EXE с чёрной консолью (текст ошибок при защите / на чужом ПК).
+# UPX отключён — меньше ложных срабатываний антивируса.
 
 import sys
 from pathlib import Path
@@ -9,10 +8,8 @@ from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
-# Mediapipe: подтянуть ресурсы задач
 mp_datas, mp_binaries, mp_hidden = collect_all("mediapipe")
 
-# Локальные файлы моделей (если есть) для первого запуска на другом ПК
 root = Path(".")
 extra_datas = []
 face_task = root / "models" / "face_landmarker.task"
@@ -53,12 +50,12 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="FotoAssistant",
+    name="FotoAssistantConsole",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -74,5 +71,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name="FotoAssistant",
+    name="FotoAssistantConsole",
 )
