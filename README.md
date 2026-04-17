@@ -30,6 +30,8 @@ python -m venv .venv
 
 Либо дважды запустите **`run.bat`** из корня проекта — скрипт подставит Python из `.venv` / `.venv312` и при необходимости установит пакеты.
 
+**PowerShell (Windows):** в каталоге проекта выполните **`.\run.ps1`** (при ошибке политики: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`). Нативные команды **`sh`**, **`chmod`** в Windows обычно **нет** — для Unix-скрипта используйте **WSL** или **Git Bash**; файл **`run.sh`** в репозитории с **LF**-окончаниями строк (см. `.gitattributes`), иначе `bash run.sh` из Git Bash может выдавать синтаксическую ошибку на `elif`.
+
 Если проект будут запускать **на другом ПК или на защите**, заранее прочитайте раздел **«Защита проекта»** ниже (несколько запасных способов, в том числе Docker).
 
 **macOS / Linux**
@@ -231,7 +233,7 @@ docker compose run --rm photo-assistant python -m src.training.train_eye_classif
 | `src/training/` | Подготовка MRL и обучение `eye_state_resnet18.pth` |
 | `training/README.md` | Как скачать данные и обучить модель |
 | `requirements.txt` | Зависимости Python |
-| `run.bat` / `run.sh` | Удобный запуск под Windows / Unix |
+| `run.bat` / `run.sh` / `run.ps1` | Запуск: CMD / Unix+WSL / PowerShell |
 | `Фотоассистент.bat` | Windows: создание `.venv`, установка пакетов, запуск GUI |
 | `run_console.bat` | Windows: запуск через `.venv` **с консолью** (видны ошибки) |
 | `photo_assistant.spec` | Сборка PyInstaller (окно без консоли) |
