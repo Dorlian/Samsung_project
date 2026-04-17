@@ -31,9 +31,10 @@ RUN python3 -m venv /opt/venv \
     && pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu \
     && pip install -r /tmp/requirements-docker.txt
 
+# Скрипт вне /app: при run том ../:/app подменяет весь проект с Windows, иначе CRLF в entrypoint с диска ломает «pipefail».
+COPY deploy/docker/entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
+
 COPY . .
 
-# На Windows в контекст сборки могут попасть CRLF в .sh — в контейнере dash/bash ругаются на «pipefail».
-RUN sed -i 's/\r$//' deploy/docker/entrypoint.sh && chmod +x deploy/docker/entrypoint.sh
-
-CMD ["bash", "deploy/docker/entrypoint.sh"]
+CMD ["bash", "/entrypoint.sh"]

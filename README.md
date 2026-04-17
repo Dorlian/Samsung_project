@@ -184,7 +184,7 @@ docker compose -f deploy/docker-compose.yml run --rm photo-assistant
 
 Корень репозитория монтируется в **`/app`** в контейнере.
 
-Если при `run` видите **`set: pipefail: invalid option name`** — пересоберите образ после `git pull` (в `Dockerfile` добавлен сброс CRLF в `entrypoint.sh`) или выполните **`docker compose -f deploy/docker-compose.yml build --no-cache`**.
+Если при `run` видите **`set: pipefail: invalid option name`** — это обычно **CRLF** в `deploy/docker/entrypoint.sh` на Windows: том монтирует проект в `/app` и **перекрывает** скрипт из образа. В образе запуск идёт из **`/entrypoint.sh`** (вне `/app`), он не подменяется томом. После `git pull` выполните **`docker compose -f deploy/docker-compose.yml build --no-cache`**.
 
 **GUI на экране хоста (Linux + X11)**
 
