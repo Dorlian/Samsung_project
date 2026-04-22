@@ -70,7 +70,7 @@ class PhotoAssistantApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         _apply_theme(self)
-        self.title("Фотоассистент фотографа")
+        self.title("ВКадре")
         self.geometry("1100x720")
         self.minsize(900, 600)
         self.after(30, self._apply_maximized_if_possible)
@@ -139,7 +139,7 @@ class PhotoAssistantApp(tk.Tk):
         header.pack_propagate(False)
         tk.Label(
             header,
-            text="Фотоассистент",
+            text="ВКадре",
             font=("SF Pro Display", 17, "bold"),
             bg=COLORS["surface"],
             fg=COLORS["fg"],
